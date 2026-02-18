@@ -14,6 +14,7 @@
         .cat-ultrasound { border-left-color: #10b981; }
         .cat-special { border-left-color: #f59e0b; }
         .sticky-summary { position: sticky; bottom: 0; background: white; border-top: 2px solid #e2e8f0; z-index: 100; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen pb-40">
@@ -42,8 +43,7 @@
             <button class="filter-btn bg-white text-slate-600 px-5 py-2 rounded-xl border font-bold whitespace-nowrap" data-filter="X-Ray">X-Ray</button>
         </div>
 
-        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            </div>
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
     </main>
 
     <div class="sticky-summary p-4 shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
@@ -56,15 +56,19 @@
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Billing Total</span>
                     <span class="text-4xl font-black text-slate-900">₹<span id="total">0</span></span>
                 </div>
-                <button onclick="generateMessage()" class="bg-green-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-green-200 flex items-center gap-3 hover:bg-green-700">
-                    <i class="fab fa-whatsapp text-2xl"></i> SEND BILL
-                </button>
+                <div class="flex gap-2">
+                    <button onclick="copyToClipboard()" id="copyBtn" class="bg-blue-100 text-blue-700 px-6 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-blue-200 transition">
+                        <i class="fas fa-copy text-xl"></i> COPY
+                    </button>
+                    <button onclick="generateMessage()" class="bg-green-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-green-200 flex items-center gap-3 hover:bg-green-700">
+                        <i class="fab fa-whatsapp text-2xl"></i> SEND BILL
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Full processed list of all 111 tests
         const data = [
             {"c": "X-Ray", "n": "Chest PA", "p": 500, "r": "Checks lungs and heart; used for cough, chest pain, pneumonia, or TB screening."},
             {"c": "X-Ray", "n": "C Spine AP/LAT", "p": 900, "r": "Images cervical vertebrae (neck); used for neck pain, trauma, or spondylosis."},
@@ -177,20 +181,16 @@
 
         let selected = [];
 
-        function init() {
-            render('all');
-        }
+        function init() { render('all'); }
 
         function render(cat, search = '') {
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
-            
             const filtered = data.filter(t => {
                 const matchesCat = cat === 'all' || t.c.includes(cat);
                 const matchesSearch = t.n.toLowerCase().includes(search.toLowerCase()) || t.r.toLowerCase().includes(search.toLowerCase());
                 return matchesCat && matchesSearch;
             });
-
             filtered.forEach(test => {
                 const card = document.createElement('div');
                 card.className = `test-card bg-white p-4 rounded-2xl shadow-sm cursor-pointer flex justify-between items-center cat-${test.c.toLowerCase().replace(' ', '')}`;
@@ -204,60 +204,64 @@
                     <div class="text-right">
                         <p class="font-black text-slate-900 text-lg">₹${test.p}</p>
                         <span class="text-[10px] font-bold text-blue-500 uppercase">+ Add</span>
-                    </div>
-                `;
+                    </div>`;
                 grid.appendChild(card);
             });
         }
 
-        function add(test) {
-            selected.push(test);
-            updateCart();
-        }
-
-        function remove(idx) {
-            selected.splice(idx, 1);
-            updateCart();
-        }
-
-        function clearAll() {
-            if(confirm("Clear selection?")) { selected = []; updateCart(); }
-        }
+        function add(test) { selected.push(test); updateCart(); }
+        function remove(idx) { selected.splice(idx, 1); updateCart(); }
+        function clearAll() { if(confirm("Clear selection?")) { selected = []; updateCart(); } }
 
         function updateCart() {
             const container = document.getElementById('cart');
             const totalEl = document.getElementById('total');
-            
             if(selected.length === 0) {
                 container.innerHTML = '<p class="text-slate-400 text-sm italic">Click tests above to build a bill...</p>';
                 totalEl.innerText = '0';
                 return;
             }
-
             container.innerHTML = selected.map((t, i) => `
                 <div class="bg-slate-900 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">
                     ${t.n} (₹${t.p})
                     <i class="fas fa-times-circle text-slate-500 cursor-pointer" onclick="remove(${i})"></i>
-                </div>
-            `).join('');
-
+                </div>`).join('');
             const sum = selected.reduce((a, b) => a + b.p, 0);
             totalEl.innerText = sum.toLocaleString('en-IN');
         }
 
-        function generateMessage() {
-            if(selected.length === 0) return alert('Select tests first!');
+        function buildMessage() {
             const list = selected.map(t => `• ${t.n}: ₹${t.p}`).join('\n');
             const sum = selected.reduce((a, b) => a + b.p, 0);
-            const msg = `*CARE POINT DIAGNOSTICS*\n_Quality Care, Affordable Prices_\n\n*Billing Summary:*\n${list}\n\n*TOTAL: ₹${sum}*\n\n📍 Dombivli Branch\n_Please come fasting if required for blood tests._`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+            return `*CARE POINT DIAGNOSTICS*\n_Quality Care, Affordable Prices_\n\n*Billing Summary:*\n${list}\n\n*TOTAL: ₹${sum}*\n\n📍 Dombivli Branch\n_Please come fasting if required for blood tests._`;
+        }
+
+        function generateMessage() {
+            if(selected.length === 0) return alert('Select tests first!');
+            window.open(`https://wa.me/?text=${encodeURIComponent(buildMessage())}`, '_blank');
+        }
+
+        async function copyToClipboard() {
+            if(selected.length === 0) return alert('Select tests first!');
+            try {
+                await navigator.clipboard.writeText(buildMessage());
+                const btn = document.getElementById('copyBtn');
+                const original = btn.innerHTML;
+                btn.innerHTML = `<i class="fas fa-check text-xl"></i> COPIED!`;
+                btn.classList.replace('bg-blue-100', 'bg-blue-600');
+                btn.classList.replace('text-blue-700', 'text-white');
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.classList.replace('bg-blue-600', 'bg-blue-100');
+                    btn.classList.replace('text-white', 'text-blue-700');
+                }, 2000);
+            } catch (err) { alert('Failed to copy!'); }
         }
 
         document.getElementById('mainSearch').oninput = (e) => {
             const cat = document.querySelector('.filter-btn.bg-blue-600').dataset.filter;
             render(cat, e.target.value);
         };
-
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.onclick = () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.className = "filter-btn bg-white text-slate-600 px-5 py-2 rounded-xl border font-bold whitespace-nowrap");
@@ -265,7 +269,6 @@
                 render(btn.dataset.filter, document.getElementById('mainSearch').value);
             };
         });
-
         init();
     </script>
 </body>
