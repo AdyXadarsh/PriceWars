@@ -65,7 +65,7 @@
   { "c": "Pathology", "n": "LH", "p": 500, "r": "Luteinizing hormone for fertility check." },
   { "c": "Pathology", "n": "Malaria (MP)", "p": 300, "r": "Microscopic malaria screening." },
   { "c": "Pathology", "n": "Malaria Antigen", "p": 700, "r": "Rapid kit test for malaria." },
-  { "c": "Pathology", "n": "Mantoux Test", "p": 500, "r": "TB skin screening." },
+  { "c": "Pathology", "n": "Montoux Test", "p": 500, "r": "TB skin screening." },
   { "c": "Pathology", "n": "Magnesium", "p": 500, "r": "Essential mineral level test." },
   { "c": "Pathology", "n": "OGTT", "p": 400, "r": "Glucose Tolerance Test for diabetes." },
   { "c": "Pathology", "n": "PT-INR", "p": 500, "r": "Monitors blood thinning medications." },
