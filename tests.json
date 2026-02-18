@@ -43,7 +43,7 @@
   {"c": "Pathology", "n": "LH", "p": 500, "r": "Luteinizing Hormone for reproductive monitoring."},
   {"c": "Pathology", "n": "Malaria (MP)", "p": 300, "r": "Microscopic examination for Malaria parasites."},
   {"c": "Pathology", "n": "Malaria Antigen", "p": 700, "r": "Rapid kit test for Malaria detection."},
-  {"c": "Pathology", "n": "Mantoux Test", "p": 500, "r": "Skin test for Tuberculosis exposure."},
+  {"c": "Pathology", "n": "Montoux Test", "p": 500, "r": "Skin test for Tuberculosis exposure."},
   {"c": "Pathology", "n": "Magnesium", "p": 500, "r": "Measures essential mineral levels for nerves/muscles."},
   {"c": "Pathology", "n": "OGTT", "p": 400, "r": "Oral Glucose Tolerance Test for diabetes screening."},
   {"c": "Pathology", "n": "PT-INR", "p": 500, "r": "Monitors blood-thinning medication effectiveness."},
