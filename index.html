@@ -9,12 +9,22 @@
     <style>
         .test-card { border-left: 4px solid transparent; transition: 0.2s; }
         .test-card:active { scale: 0.98; }
+        /* Dynamic Category Colors */
         .cat-pathology { border-left-color: #ef4444; }
         .cat-xray { border-left-color: #3b82f6; }
         .cat-ultrasound { border-left-color: #10b981; }
         .cat-specialstudies { border-left-color: #f59e0b; }
+        .cat-ecg { border-left-color: #8b5cf6; }
+        
         .sticky-summary { position: sticky; bottom: 0; background: white; border-top: 2px solid #e2e8f0; z-index: 100; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        @keyframes bounce-in {
+            0% { transform: translate(-50%, -100%); opacity: 0; }
+            70% { transform: translate(-50%, 10px); opacity: 1; }
+            100% { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .animate-upsell { animation: bounce-in 0.5s ease-out forwards; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen pb-40">
@@ -44,7 +54,7 @@
         </div>
 
         <div id="grid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <p class="text-slate-500 animate-pulse">Loading tests...</p>
+            <div class="col-span-full text-center py-10 text-slate-400 italic">Loading tests...</div>
         </div>
     </main>
 
@@ -71,45 +81,55 @@
     </div>
 
     <script>
-        let data = []; // Empty initially
+        let data = [];
         let selected = [];
+        let dismissedAlerts = new Set();
 
-        // LOAD DATA FROM EXTERNAL JSON
+        // 1. INITIALIZE & FETCH DATA
         async function init() {
             try {
                 const response = await fetch('tests.json');
-                if (!response.ok) throw new Error('Failed to load tests');
+                if (!response.ok) throw new Error('Could not find tests.json');
                 data = await response.json();
                 render('all');
             } catch (err) {
-                document.getElementById('grid').innerHTML = `<p class="text-red-500">Error loading tests. Please ensure tests.json is in the same folder.</p>`;
-                console.error(err);
+                document.getElementById('grid').innerHTML = `
+                    <div class="col-span-full bg-red-50 text-red-600 p-6 rounded-2xl text-center">
+                        <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+                        <p class="font-bold">Error loading data</p>
+                        <p class="text-sm">Please ensure <b>tests.json</b> is in the same folder and you are using a local server.</p>
+                    </div>`;
             }
         }
 
+        // 2. RENDER TEST CARDS
         function render(cat, search = '') {
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
+            
             const filtered = data.filter(t => {
                 const matchesCat = cat === 'all' || t.c.includes(cat);
-                const matchesSearch = t.n.toLowerCase().includes(search.toLowerCase()) || t.r.toLowerCase().includes(search.toLowerCase());
+                const matchesSearch = t.n.toLowerCase().includes(search.toLowerCase()) || 
+                                    t.r.toLowerCase().includes(search.toLowerCase());
                 return matchesCat && matchesSearch;
             });
 
             if(filtered.length === 0) {
-                grid.innerHTML = '<p class="text-slate-400 col-span-full text-center py-10">No tests found...</p>';
+                grid.innerHTML = '<p class="text-slate-400 col-span-full text-center py-10">No tests found matching your search.</p>';
                 return;
             }
 
             filtered.forEach(test => {
                 const card = document.createElement('div');
-                // Clean category name for CSS class (e.g., "Special Studies" -> "specialstudies")
                 const catClass = test.c.toLowerCase().replace(/\s+/g, '');
                 card.className = `test-card bg-white p-4 rounded-2xl shadow-sm cursor-pointer flex justify-between items-center cat-${catClass}`;
                 card.onclick = () => add(test);
                 card.innerHTML = `
                     <div class="flex-1 pr-3">
-                        <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">${test.c}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">${test.c}</span>
+                            ${test.is_pkg ? '<span class="bg-amber-100 text-amber-700 text-[8px] font-black px-1.5 py-0.5 rounded italic">PACKAGE</span>' : ''}
+                        </div>
                         <h3 class="font-bold text-slate-800 leading-tight">${test.n}</h3>
                         <p class="text-[10px] text-slate-400 mt-1 line-clamp-1">${test.r}</p>
                     </div>
@@ -121,27 +141,104 @@
             });
         }
 
-        function add(test) { selected.push(test); updateCart(); }
-        function remove(idx) { selected.splice(idx, 1); updateCart(); }
-        function clearAll() { if(confirm("Clear selection?")) { selected = []; updateCart(); } }
+        // 3. CART ACTIONS
+        function add(test) {
+            selected.push(test);
+            updateCart();
+        }
 
+        function remove(idx) {
+            selected.splice(idx, 1);
+            updateCart();
+        }
+
+        function clearAll() {
+            if(confirm("Clear current selection?")) {
+                selected = [];
+                dismissedAlerts.clear();
+                updateCart();
+            }
+        }
+
+        // 4. SMART UPSELL LOGIC
         function updateCart() {
             const container = document.getElementById('cart');
             const totalEl = document.getElementById('total');
+            
             if(selected.length === 0) {
                 container.innerHTML = '<p class="text-slate-400 text-sm italic">Click tests above to build a bill...</p>';
                 totalEl.innerText = '0';
                 return;
             }
+
+            // DYNAMIC PACKAGE CHECK
+            const packages = data.filter(t => t.is_pkg);
+            packages.forEach(pkg => {
+                const constituentsInCart = selected.filter(t => t.p_id === pkg.pkg_id);
+                const totalConstituents = data.filter(t => t.p_id === pkg.pkg_id).length;
+                const hasFullPkg = selected.some(t => t.pkg_id === pkg.pkg_id);
+
+                // Show alert if 50% or more constituent tests are added
+                if (totalConstituents > 0 && constituentsInCart.length >= (totalConstituents / 2) && !hasFullPkg) {
+                    if (!dismissedAlerts.has(pkg.pkg_id)) {
+                        showUpsellAlert(pkg);
+                    }
+                }
+            });
+
+            // Update UI
             container.innerHTML = selected.map((t, i) => `
                 <div class="bg-slate-900 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">
                     ${t.n} (₹${t.p})
                     <i class="fas fa-times-circle text-slate-500 cursor-pointer" onclick="remove(${i})"></i>
                 </div>`).join('');
+
             const sum = selected.reduce((a, b) => a + b.p, 0);
             totalEl.innerText = sum.toLocaleString('en-IN');
         }
 
+        function showUpsellAlert(pkg) {
+            if(document.getElementById(`upsell-${pkg.pkg_id}`)) return;
+
+            const toast = document.createElement('div');
+            toast.id = `upsell-${pkg.pkg_id}`;
+            toast.className = "fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-white border-l-8 border-amber-500 p-4 rounded-xl shadow-2xl z-[200] flex items-center gap-4 animate-upsell";
+            toast.innerHTML = `
+                <div class="bg-amber-100 p-3 rounded-full">
+                    <i class="fas fa-lightbulb text-amber-600 text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Money Saver</p>
+                    <p class="text-xs text-slate-800 leading-tight mb-2">Switch to <b>${pkg.n}</b> for <b>₹${pkg.p}</b> instead of individual tests?</p>
+                    <button onclick="applyPackage('${pkg.pkg_id}')" class="bg-amber-500 text-white text-[10px] px-3 py-1.5 rounded-lg font-black hover:bg-amber-600 transition">
+                        SWITCH TO PACKAGE
+                    </button>
+                </div>
+                <button onclick="dismissUpsell('${pkg.pkg_id}')" class="text-slate-300 hover:text-slate-900 px-2 text-xl">✕</button>
+            `;
+            document.body.appendChild(toast);
+        }
+
+        function applyPackage(pkgId) {
+            // 1. Find the actual package object
+            const pkgObj = data.find(t => t.pkg_id === pkgId);
+            // 2. Remove all individual tests belonging to this package
+            selected = selected.filter(t => t.p_id !== pkgId);
+            // 3. Add the package
+            selected.push(pkgObj);
+            // 4. Remove the alert
+            dismissUpsell(pkgId);
+            // 5. Update cart
+            updateCart();
+        }
+
+        function dismissUpsell(id) {
+            const el = document.getElementById(`upsell-${id}`);
+            if(el) el.remove();
+            dismissedAlerts.add(id);
+        }
+
+        // 5. MESSAGING & CLIPBOARD
         function buildMessage() {
             const list = selected.map(t => `• ${t.n}: ₹${t.p}`).join('\n');
             const sum = selected.reduce((a, b) => a + b.p, 0);
@@ -175,6 +272,7 @@
             } catch (err) { alert('Failed to copy!'); }
         }
 
+        // 6. EVENT LISTENERS
         document.getElementById('mainSearch').oninput = (e) => {
             const activeFilter = document.querySelector('.filter-btn.bg-blue-600').dataset.filter;
             render(activeFilter, e.target.value);
