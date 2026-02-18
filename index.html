@@ -231,10 +231,19 @@
         }
 
         function buildMessage() {
-            const list = selected.map(t => `• ${t.n}: ₹${t.p}`).join('\n');
-            const sum = selected.reduce((a, b) => a + b.p, 0);
-            return `*CARE POINT DIAGNOSTICS*\n_Quality Care, Affordable Prices_\n\n*Billing Summary:*\n${list}\n\n*TOTAL: ₹${sum}*\n\n📍 Dombivli Branch\n_Please come fasting if required for blood tests._`;
-        }
+    const list = selected.map(t => `• ${t.n}: ₹${t.p}`).join('\n');
+    const sum = selected.reduce((a, b) => a + b.p, 0);
+    
+    // Check if the specific test is selected
+    const needsFasting = selected.some(t => t.n.includes("Abdomen + Pelvis"));
+    
+    // Create the fasting text variable
+    const fastingAlert = needsFasting 
+        ? `\n\n⚠️ *IMPORTANT:* Please maintain 2 hours of strict fasting before your Abdomen Pelvis Sonography.` 
+        : "";
+
+    return `*CARE POINT DIAGNOSTICS*\n_Quality Care, Affordable Prices_\n\n*Billing Summary:*\n${list}\n\n*TOTAL: ₹${sum}*${fastingAlert}\n\n📍 Dombivli Branch\n_Please come fasting if required for blood tests._`;
+}
 
         function generateMessage() {
             if(selected.length === 0) return alert('Select tests first!');
