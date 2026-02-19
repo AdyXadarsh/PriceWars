@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Care Point Billing Assistant</title>
+    <title>Care Point Billing Assistant - Final v3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -12,55 +12,83 @@
         .cat-pathology { border-left-color: #ef4444; }
         .cat-xray { border-left-color: #3b82f6; }
         .cat-ultrasound { border-left-color: #10b981; }
-        .cat-special { border-left-color: #f59e0b; }
+        .cat-package { border-left-color: #8b5cf6; }
+        .cat-specialstudies { border-left-color: #f59e0b; }
+        .cat-ecg { border-left-color: #06b6d4; }
         .sticky-summary { position: sticky; bottom: 0; background: white; border-top: 2px solid #e2e8f0; z-index: 100; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
+        .modal.active { display: flex; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-40">
+<body class="bg-slate-50 min-h-screen pb-40 font-sans">
 
-    <header class="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50">
+    <header class="bg-slate-900 text-white p-5 shadow-lg sticky top-0 z-50">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-lg font-black tracking-tighter uppercase">Care Point Diagnostics</h1>
-                <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">By Ady</p>
+                <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Care Point Diagnostics</h1>
+                <p class="text-[10px] text-blue-400 font-bold uppercase tracking-[0.2em] mt-1">Dombivli Branch | Billing System</p>
             </div>
-            <button onclick="clearAll()" class="text-xs bg-slate-800 px-3 py-1 rounded-full text-slate-400 hover:text-white">Reset</button>
+            <button onclick="clearAll()" class="text-xs bg-slate-800 border border-slate-700 px-4 py-2 rounded-full text-slate-300 hover:text-white transition">Reset All</button>
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto p-4">
         <div class="mb-6 relative">
-            <input type="text" id="mainSearch" placeholder="Search by Test Name or Category..." 
-                class="w-full p-4 pl-12 rounded-2xl border-none shadow-lg focus:ring-4 focus:ring-blue-500/20 text-lg">
-            <i class="fas fa-search absolute left-4 top-5 text-slate-300"></i>
+            <input type="text" id="mainSearch" placeholder="Search 150+ tests and packages..." 
+                class="w-full p-5 pl-14 rounded-3xl border-none shadow-xl focus:ring-4 focus:ring-blue-500/20 text-lg">
+            <i class="fas fa-search absolute left-6 top-6 text-slate-300 text-xl"></i>
         </div>
 
-        <div class="flex gap-2 overflow-x-auto pb-4 mb-2 no-scrollbar">
-            <button class="filter-btn bg-blue-600 text-white px-5 py-2 rounded-xl font-bold whitespace-nowrap" data-filter="all">All</button>
-            <button class="filter-btn bg-white text-slate-600 px-5 py-2 rounded-xl border font-bold whitespace-nowrap" data-filter="Pathology">Pathology</button>
-            <button class="filter-btn bg-white text-slate-600 px-5 py-2 rounded-xl border font-bold whitespace-nowrap" data-filter="Ultrasound">Ultrasound</button>
-            <button class="filter-btn bg-white text-slate-600 px-5 py-2 rounded-xl border font-bold whitespace-nowrap" data-filter="X-Ray">X-Ray</button>
+        <div class="flex gap-2 overflow-x-auto pb-4 mb-4 no-scrollbar">
+            <button class="filter-btn bg-blue-600 text-white px-6 py-2.5 rounded-2xl font-bold whitespace-nowrap shadow-md" data-filter="all">All Items</button>
+            <button class="filter-btn bg-white text-slate-600 px-6 py-2.5 rounded-2xl border font-bold whitespace-nowrap" data-filter="Package">Health Packages</button>
+            <button class="filter-btn bg-white text-slate-600 px-6 py-2.5 rounded-2xl border font-bold whitespace-nowrap" data-filter="Pathology">Pathology</button>
+            <button class="filter-btn bg-white text-slate-600 px-6 py-2.5 rounded-2xl border font-bold whitespace-nowrap" data-filter="Ultrasound">Sonography</button>
+            <button class="filter-btn bg-white text-slate-600 px-6 py-2.5 rounded-2xl border font-bold whitespace-nowrap" data-filter="X-Ray">X-Ray</button>
         </div>
 
-        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </main>
 
-    <div class="sticky-summary p-4 shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
+    <div id="packageModal" class="modal">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl transform transition-all">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <span class="text-[10px] font-black text-purple-600 uppercase tracking-widest block mb-1">Package Contents</span>
+                    <h2 id="modalTitle" class="text-2xl font-black text-slate-900 leading-tight"></h2>
+                </div>
+                <button onclick="closeModal()" class="text-slate-300 hover:text-slate-600"><i class="fas fa-times-circle text-3xl"></i></button>
+            </div>
+            <div id="modalContent" class="text-sm text-slate-600 space-y-2.5 mb-8 max-h-72 overflow-y-auto pr-4 custom-scrollbar"></div>
+            <div class="flex justify-between items-center pt-6 border-t border-slate-100">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Offer Price</span>
+                    <p id="modalPrice" class="text-3xl font-black text-slate-900"></p>
+                </div>
+                <button id="modalAddBtn" class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black shadow-lg shadow-blue-100 hover:bg-blue-700 active:scale-95 transition">Add to Bill</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sticky-summary p-5 shadow-[0_-15px_40px_rgba(0,0,0,0.08)]">
         <div class="max-w-4xl mx-auto">
-            <div id="cart" class="flex flex-wrap gap-2 mb-4 max-h-24 overflow-y-auto">
-                <p class="text-slate-400 text-sm italic">Click tests above to build a bill...</p>
+            <div id="cart" class="flex flex-wrap gap-2 mb-5 max-h-28 overflow-y-auto no-scrollbar">
+                <p class="text-slate-400 text-sm font-medium">No tests selected yet...</p>
             </div>
             <div class="flex justify-between items-end">
-                <div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Billing Total</span>
-                    <span class="text-4xl font-black text-slate-900">₹<span id="total">0</span></span>
+                <div class="flex-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Final Amount</span>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-5xl font-black text-slate-900">₹<span id="total">0</span></span>
+                        <div id="savingsBadge" class="hidden font-black bg-green-500 text-white px-3 py-1 rounded-full text-[10px] shadow-sm animate-bounce"></div>
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="copyToClipboard()" id="copyBtn" class="bg-blue-100 text-blue-700 px-6 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-blue-200 transition">
-                        <i class="fas fa-copy text-xl"></i> COPY
+                <div class="flex gap-3">
+                    <button onclick="copyToClipboard()" id="copyBtn" class="bg-slate-100 text-slate-700 w-14 h-14 md:w-auto md:px-6 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition">
+                        <i class="fas fa-copy text-xl"></i><span class="hidden md:inline">COPY</span>
                     </button>
-                    <button onclick="generateMessage()" class="bg-green-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-green-200 flex items-center gap-3 hover:bg-green-700">
+                    <button onclick="generateMessage()" class="bg-green-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl shadow-green-100 flex items-center gap-3 hover:bg-green-700 active:scale-95 transition">
                         <i class="fab fa-whatsapp text-2xl"></i> SEND BILL
                     </button>
                 </div>
@@ -69,11 +97,22 @@
     </div>
 
     <script>
-        const data = [
-            {"c": "X-Ray", "n": "Chest PA", "p": 500, "r": "Checks lungs and heart; used for cough, chest pain, pneumonia, or TB screening."},
-            {"c": "X-Ray", "n": "C Spine AP/LAT", "p": 900, "r": "Images cervical vertebrae (neck); used for neck pain, trauma, or spondylosis."},
-            {"c": "X-Ray", "n": "L Spine AP/LAT", "p": 900, "r": "Images lumbar vertebrae (lower back); used for back pain, slip disc, or sciatica."},
-            {"c": "X-Ray", "n": "Dorsal (Thoracic) AP/LAT", "p": 900, "r": "Images mid-back; used for posture issues, pain, or trauma."},
+        const packages = [
+            {"c": "Package", "n": "Body Profile (Basic)", "p": 2999, "original": 5999, "save": 3000, "includes": ["CBC", "ESR", "Diabetic Profile", "Renal Profile", "Lipid Profile", "Urine Routine", "USG AB+P", "ECG", "X-Ray Chest", "2D Echo", "BP"], "r": "Basic full body screen."},
+            {"c": "Package", "n": "Body Profile (Extended)", "p": 2199, "original": 8599, "save": 6400, "includes": ["CBC", "ESR", "Liver Profile", "Renal Profile", "Lipid Profile", "FBS", "PPBS", "HIV", "HCV", "HBSAG", "VDRL", "Thyroid Profile (T3T4TSH)", "Vit D3", "Vit B12", "Blood Group", "Urine Routine", "Stool Routine", "ECG", "X-Ray Chest", "BP"], "r": "Official Care Point Health Package."},
+            {"c": "Package", "n": "Winter Package", "p": 2999, "original": 8999, "save": 6000, "includes": ["CBC", "Testosterone", "Lipid Profile", "Vit D3", "Liver Profile", "Vit B12", "Renal Profile", "Iron Studies", "Sugar Profile", "X-Ray Chest", "Thyroid Profile (T3T4TSH)", "ECG"], "r": "Seasonal wellness profile."},
+            {"c": "Package", "n": "Fever Profile", "p": 599, "original": 1399, "save": 800, "includes": ["CBC", "ESR", "Malaria Parasite", "Widal", "Chest X-Ray"], "r": "Primary fever screening."},
+            {"c": "Package", "n": "Male Advance", "p": 6999, "original": 12999, "save": 6000, "includes": ["Urine Routine", "CBC (28 tests)", "ESR", "Blood Sugar Fasting", "HbA1c", "Kidney Profile", "Lipid Profile", "Liver Function Test", "Electrolyte Profile", "Iron Study (Iron TIBC Transferrin Saturation)", "Thyroid Profile", "25 OH Vitamin D", "Vitamin B12", "PSA Total", "Rheumatoid Factor (RF)", "ECG", "Chest X-Ray", "USG Screening AB+P", "2D Echo"], "r": "Premium male wellness."},
+            {"c": "Package", "n": "Woman Advance", "p": 6999, "original": 15999, "save": 9000, "includes": ["Complete Hemogram (28 tests)", "Iron Study (Iron TIBC Transferrin Saturation)", "Lipid Profile", "Liver Function Test", "Kidney Profile", "Wellness Vitamin Profile", "HbA1c", "Anti CCP (ACCP)", "Calcium", "Hormonal Test (FSH LH Prolactin)", "Estradiol", "Thyroid Profile", "ECG", "Chest X-Ray", "USG Screening AB+P", "2D Echo"], "r": "Premium female wellness."},
+            {"c": "Package", "n": "Cardiac Profile", "p": 3999, "original": 7500, "save": 3501, "includes": ["CPK-MB", "Troponin I", "Troponin T", "NT-PROBNP", "ECG", "X-Ray Chest"], "r": "Specialized heart health."},
+            {"c": "Package", "n": "Cancer Profile", "p": 3799, "original": 8000, "save": 4201, "includes": ["CBC", "PSA Total", "PSA Free", "CA 125", "CA 19.9", "Procalcitonin", "Calcium"], "r": "Early tumor marker screen."}
+        ];
+
+        const individualTests = [
+            {"c": "X-Ray", "n": "Chest PA", "p": 500, "r": "Checks lungs and heart; cough, chest pain, pneumonia, or TB screening."},
+            {"c": "X-Ray", "n": "C Spine AP/LAT", "p": 900, "r": "Neck imaging; trauma or spondylosis."},
+            {"c": "X-Ray", "n": "L Spine AP/LAT", "p": 900, "r": "Lower back; slip disc or sciatica."},
+            {"c": "X-Ray", "n": "Dorsal (Thoracic) AP/LAT", "p": 900, "r": "Mid-back imaging."},
             {"c": "X-Ray", "n": "Hand AP/LAT", "p": 900, "r": "Orthopedic imaging for bones/joints."},
             {"c": "X-Ray", "n": "Elbow AP/LAT", "p": 900, "r": "Orthopedic imaging for bones/joints."},
             {"c": "X-Ray", "n": "Wrist AP/LAT", "p": 900, "r": "Orthopedic imaging for bones/joints."},
@@ -93,7 +132,7 @@
             {"c": "Pathology", "n": "AMH", "p": 2200, "r": "Ovarian reserve (fertility potential)."},
             {"c": "Pathology", "n": "Ana Profile", "p": 5500, "r": "Comprehensive Anemia workup."},
             {"c": "Pathology", "n": "Amylase", "p": 500, "r": "Pancreatitis diagnosis."},
-            {"c": "Pathology", "n": "ANC Profile", "p": 2500, "r": "Constituents: CBC, Sugar(F), HBSAG, TSH, Urine R, HCV, HIV, Blood group, VDRL."},
+            {"c": "Pathology", "n": "ANC Profile", "p": 2500, "r": "CBC, Sugar(F), HBSAG, TSH, Urine R, HCV, HIV, Blood group, VDRL."},
             {"c": "Pathology", "n": "Anti CCP", "p": 1400, "r": "Rheumatoid Arthritis screening."},
             {"c": "Pathology", "n": "Alk. Phosphate", "p": 200, "r": "Liver/Bone health marker."},
             {"c": "Pathology", "n": "Blood Group", "p": 250, "r": "Determines type (A/B/O, Rh)."},
@@ -133,7 +172,7 @@
             {"c": "Pathology", "n": "LH", "p": 500, "r": "Reproductive hormone."},
             {"c": "Pathology", "n": "Malaria (MP)", "p": 300, "r": "Malaria microscopy."},
             {"c": "Pathology", "n": "Malaria Antigen", "p": 700, "r": "Rapid malaria kit test."},
-            {"c": "Pathology", "n": "Mantoux Test", "p": 500, "r": "TB skin test."},
+            {"c": "Pathology", "n": "Montoux Test", "p": 500, "r": "TB skin test."},
             {"c": "Pathology", "n": "Magnesium", "p": 500, "r": "Mineral level test."},
             {"c": "Pathology", "n": "OGTT", "p": 400, "r": "Glucose Tolerance Test."},
             {"c": "Pathology", "n": "PT-INR", "p": 500, "r": "Blood thinning monitoring."},
@@ -179,6 +218,7 @@
             {"c": "Ultrasound", "n": "B Scan", "p": 3000, "r": "Eye imaging."}
         ];
 
+        const data = [...packages, ...individualTests];
         let selected = [];
 
         function init() { render('all'); }
@@ -188,83 +228,120 @@
             grid.innerHTML = '';
             const filtered = data.filter(t => {
                 const matchesCat = cat === 'all' || t.c.includes(cat);
-                const matchesSearch = t.n.toLowerCase().includes(search.toLowerCase()) || t.r.toLowerCase().includes(search.toLowerCase());
+                const matchesSearch = t.n.toLowerCase().includes(search.toLowerCase()) || (t.r && t.r.toLowerCase().includes(search.toLowerCase()));
                 return matchesCat && matchesSearch;
             });
+
             filtered.forEach(test => {
+                const isPkg = test.c === "Package";
                 const card = document.createElement('div');
-                card.className = `test-card bg-white p-4 rounded-2xl shadow-sm cursor-pointer flex justify-between items-center cat-${test.c.toLowerCase().replace(' ', '')}`;
-                card.onclick = () => add(test);
+                card.className = `test-card bg-white p-5 rounded-3xl shadow-sm cursor-pointer flex justify-between items-center cat-${test.c.toLowerCase().replace(' ', '')} hover:shadow-md transition-all`;
+                
+                card.onclick = isPkg ? () => showPackage(test) : () => add(test);
+                
                 card.innerHTML = `
                     <div class="flex-1 pr-3">
                         <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">${test.c}</span>
-                        <h3 class="font-bold text-slate-800 leading-tight">${test.n}</h3>
-                        <p class="text-[10px] text-slate-400 mt-1 line-clamp-1">${test.r}</p>
+                        <h3 class="font-bold text-slate-800 leading-tight text-lg">${test.n}</h3>
+                        ${isPkg ? `<p class="text-[10px] text-purple-600 font-black mt-1 uppercase italic"><i class="fas fa-gift mr-1"></i> Special Offer: Save ₹${test.save}</p>` : `<p class="text-[10px] text-slate-400 mt-1 font-medium italic">${test.r}</p>`}
                     </div>
                     <div class="text-right">
-                        <p class="font-black text-slate-900 text-lg">₹${test.p}</p>
-                        <span class="text-[10px] font-bold text-blue-500 uppercase">+ Add</span>
+                        <p class="font-black text-slate-900 text-xl">₹${test.p}</p>
+                        <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest">${isPkg ? 'Details' : 'Add Test'}</span>
                     </div>`;
                 grid.appendChild(card);
             });
         }
 
-        function add(test) { selected.push(test); updateCart(); }
+        function showPackage(pkg) {
+            document.getElementById('modalTitle').innerText = pkg.n;
+            document.getElementById('modalPrice').innerText = `₹${pkg.p.toLocaleString('en-IN')}`;
+            const content = document.getElementById('modalContent');
+            content.innerHTML = `<p class="font-black text-slate-900 mb-3 uppercase tracking-widest text-[10px]"><i class="fas fa-list-ul mr-2"></i> Included Parameters:</p>` + 
+                               pkg.includes.map(i => `<div class="flex items-center gap-3 text-slate-700 bg-slate-50 p-2 rounded-xl mb-1 border border-slate-100"><i class="fas fa-check-circle text-green-500 text-xs"></i> ${i}</div>`).join('');
+            
+            const btn = document.getElementById('modalAddBtn');
+            btn.onclick = () => { add(pkg); closeModal(); };
+            document.getElementById('packageModal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('packageModal').classList.remove('active'); }
+
+        function add(test) {
+            if(test.c === "Package") {
+                selected = selected.filter(item => !test.includes.includes(item.n));
+            } else {
+                const alreadyInPackage = selected.find(p => p.c === "Package" && p.includes.includes(test.n));
+                if(alreadyInPackage) return alert(`${test.n} is already included in the ${alreadyInPackage.n}!`);
+            }
+            selected.push(test);
+            updateCart();
+        }
+
         function remove(idx) { selected.splice(idx, 1); updateCart(); }
-        function clearAll() { if(confirm("Clear selection?")) { selected = []; updateCart(); } }
+        function clearAll() { if(confirm("Discard current selection?")) { selected = []; updateCart(); } }
 
         function updateCart() {
             const container = document.getElementById('cart');
             const totalEl = document.getElementById('total');
+            const savingsBadge = document.getElementById('savingsBadge');
+
             if(selected.length === 0) {
-                container.innerHTML = '<p class="text-slate-400 text-sm italic">Click tests above to build a bill...</p>';
+                container.innerHTML = '<p class="text-slate-400 text-sm font-medium italic">Building estimate...</p>';
                 totalEl.innerText = '0';
+                savingsBadge.classList.add('hidden');
                 return;
             }
+
             container.innerHTML = selected.map((t, i) => `
-                <div class="bg-slate-900 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">
-                    ${t.n} (₹${t.p})
-                    <i class="fas fa-times-circle text-slate-500 cursor-pointer" onclick="remove(${i})"></i>
+                <div class="bg-slate-900 text-white px-4 py-2 rounded-full text-[11px] font-black flex items-center gap-2 shadow-lg">
+                    ${t.n.toUpperCase()} (₹${t.p})
+                    <i class="fas fa-times-circle text-slate-500 cursor-pointer hover:text-red-400" onclick="remove(${i})"></i>
                 </div>`).join('');
+
             const sum = selected.reduce((a, b) => a + b.p, 0);
+            const totalSavings = selected.reduce((a, b) => a + (b.save || 0), 0);
             totalEl.innerText = sum.toLocaleString('en-IN');
+            
+            if(totalSavings > 0) {
+                savingsBadge.innerText = `SAVED ₹${totalSavings.toLocaleString('en-IN')}`;
+                savingsBadge.classList.remove('hidden');
+            } else {
+                savingsBadge.classList.add('hidden');
+            }
         }
 
         function buildMessage() {
-    const list = selected.map(t => `• ${t.n}: ₹${t.p}`).join('\n');
-    const sum = selected.reduce((a, b) => a + b.p, 0);
-    
-    // Check if the specific test is selected
-    const needsFasting = selected.some(t => t.n.includes("Abdomen + Pelvis"));
-    
-    // Create the fasting text variable
-    const fastingAlert = needsFasting 
-        ? `\n\n⚠️ *IMPORTANT:* Please maintain 2 hours of strict fasting before your Abdomen Pelvis Sonography.` 
-        : "";
+            const list = selected.map(t => `• ${t.n}: ₹${t.p}${t.c === "Package" ? ' (Value Bundle)' : ''}`).join('\n');
+            const sum = selected.reduce((a, b) => a + b.p, 0);
+            const savings = selected.reduce((a, b) => a + (b.save || 0), 0);
+            
+            const needsFasting = selected.some(t => 
+                t.n.toLowerCase().includes("abdomen") || 
+                t.n.toLowerCase().includes("sugar (f)") || 
+                t.n.toLowerCase().includes("profile") || 
+                t.c === "Package"
+            );
+            
+            const fastingAlert = needsFasting ? `\n\n⚠️ *FASTING INSTRUCTIONS:*\n10-12 hours of strict fasting required for accurate results. Only plain water allowed.` : "";
+            const savingsNote = savings > 0 ? `\n\n💰 *Total Package Savings: ₹${savings}*` : "";
 
-    return `*CARE POINT DIAGNOSTICS*\n_Quality Care, Affordable Prices_\n\n*Billing Summary:*\n${list}\n\n*TOTAL: ₹${sum}*${fastingAlert}\n\n📍 Dombivli Branch\n_Please come fasting if required for blood tests._`;
-}
+            return `*CARE POINT DIAGNOSTICS*\n_Quality Care, Affordable Prices_\n\n*ESTIMATE SUMMARY:*\n${list}\n\n*TOTAL PAYABLE: ₹${sum}*${savingsNote}${fastingAlert}\n\n📍 Visit us: Care Point Diagnostic Centre, Dombivli West.\n📞 Thank you for choosing Care Point!`;
+        }
 
         function generateMessage() {
-            if(selected.length === 0) return alert('Select tests first!');
+            if(selected.length === 0) return alert('Select items first!');
             window.open(`https://wa.me/?text=${encodeURIComponent(buildMessage())}`, '_blank');
         }
 
         async function copyToClipboard() {
-            if(selected.length === 0) return alert('Select tests first!');
+            if(selected.length === 0) return alert('Select items first!');
             try {
                 await navigator.clipboard.writeText(buildMessage());
                 const btn = document.getElementById('copyBtn');
-                const original = btn.innerHTML;
-                btn.innerHTML = `<i class="fas fa-check text-xl"></i> COPIED!`;
-                btn.classList.replace('bg-blue-100', 'bg-blue-600');
-                btn.classList.replace('text-blue-700', 'text-white');
-                setTimeout(() => {
-                    btn.innerHTML = original;
-                    btn.classList.replace('bg-blue-600', 'bg-blue-100');
-                    btn.classList.replace('text-white', 'text-blue-700');
-                }, 2000);
-            } catch (err) { alert('Failed to copy!'); }
+                btn.innerHTML = `<i class="fas fa-check"></i>`;
+                setTimeout(() => { btn.innerHTML = `<i class="fas fa-copy text-xl"></i><span class="hidden md:inline">COPY</span>`; }, 2000);
+            } catch (err) { alert('Copy failed!'); }
         }
 
         document.getElementById('mainSearch').oninput = (e) => {
@@ -273,11 +350,14 @@
         };
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.onclick = () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.className = "filter-btn bg-white text-slate-600 px-5 py-2 rounded-xl border font-bold whitespace-nowrap");
-                btn.className = "filter-btn bg-blue-600 text-white px-5 py-2 rounded-xl font-bold whitespace-nowrap";
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.className = "filter-btn bg-white text-slate-600 px-6 py-2.5 rounded-2xl border font-bold whitespace-nowrap transition-all";
+                });
+                btn.className = "filter-btn bg-blue-600 text-white px-6 py-2.5 rounded-2xl font-bold whitespace-nowrap shadow-lg transition-all";
                 render(btn.dataset.filter, document.getElementById('mainSearch').value);
             };
         });
+
         init();
     </script>
 </body>
