@@ -314,7 +314,6 @@
        function buildMessage() {
     const list = selected.map(t => {
         let entry = `• ${t.n}: ₹${t.p}`;
-        // If it's a package, indent and list the included tests
         if (t.c === "Package" && t.includes) {
             entry += ` (Value Bundle)\n  └ Includes: ${t.includes.join(', ')}`;
         }
@@ -324,14 +323,25 @@
     const sum = selected.reduce((a, b) => a + b.p, 0);
     const savings = selected.reduce((a, b) => a + (b.save || 0), 0);
     
-    const needsFasting = selected.some(t => 
-        t.n.toLowerCase().includes("abdomen") || 
+    // Check for Standard Fasting (10-12 hours)
+    const needsStandardFasting = selected.some(t => 
         t.n.toLowerCase().includes("sugar (f)") || 
         t.n.toLowerCase().includes("profile") || 
-        t.c === "Package"
+        (t.c === "Package" && t.n !== "Fever Profile") // Fever profile usually doesn't require fasting
+    );
+
+    // Check specifically for Ultrasound Abdomen (2 hours)
+    const needsAbdomenFasting = selected.some(t => 
+        t.n.toLowerCase().includes("abdomen")
     );
     
-    const fastingAlert = needsFasting ? `\n\n⚠️ *FASTING INSTRUCTIONS:*\n10-12 hours of strict fasting required for accurate results. Only plain water allowed.` : "";
+    let fastingAlert = "";
+    if (needsStandardFasting) {
+        fastingAlert = `\n\n⚠️ *FASTING INSTRUCTIONS:*\n10-12 hours of strict fasting required for accurate results. Only plain water allowed.`;
+    } else if (needsAbdomenFasting) {
+        fastingAlert = `\n\n⚠️ *PREPARATION:*\n2 hours of fasting required for the Abdomen scan.`;
+    }
+    
     const savingsNote = savings > 0 ? `\n\n💰 *Total Package Savings: ₹${savings}*` : "";
 
     return `*CARE POINT DIAGNOSTICS*\n_Quality Care, Affordable Prices_\n\n*ESTIMATE SUMMARY:*\n${list}\n\n*TOTAL PAYABLE: ₹${sum}*${savingsNote}${fastingAlert}\n\n📍 Visit us: Care Point Diagnostic Centre, GNP Galleria, Dombivli East.\n📞 Thank you for choosing Care Point!`;
