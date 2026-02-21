@@ -99,13 +99,13 @@
 
     <script>
         const packages = [
-            {"c": "Package", "n": "Body Profile (Basic)", "p": 2999, "original": 5999, "save": 3000, "includes": ["CBC", "ESR", "Diabetic Profile", "Renal Profile", "Lipid Profile", "Urine Routine", "USG AB+P", "ECG", "X-Ray Chest", "2D Echo", "BP"], "r": "Basic full body screen."},
-            {"c": "Package", "n": "Body Profile (Extended)", "p": 2199, "original": 8599, "save": 6400, "includes": ["CBC", "ESR", "Liver Profile", "Renal Profile", "Lipid Profile", "FBS", "PPBS", "HIV", "HCV", "HBSAG", "VDRL", "Thyroid Profile (T3T4TSH)", "Vit D3", "Vit B12", "Blood Group", "Urine Routine", "Stool Routine", "ECG", "X-Ray Chest", "BP"], "r": "Official Care Point Health Package."},
-            {"c": "Package", "n": "Winter Package", "p": 2999, "original": 8999, "save": 6000, "includes": ["CBC", "Testosterone", "Lipid Profile", "Vit D3", "Liver Profile", "Vit B12", "Renal Profile", "Iron Studies", "Sugar Profile", "X-Ray Chest", "Thyroid Profile (T3T4TSH)", "ECG"], "r": "Seasonal wellness profile."},
-            {"c": "Package", "n": "Fever Profile", "p": 599, "original": 1399, "save": 800, "includes": ["CBC", "ESR", "Malaria Parasite", "Widal", "Chest X-Ray"], "r": "Primary fever screening."},
-            {"c": "Package", "n": "Male Advance", "p": 6999, "original": 12999, "save": 6000, "includes": ["Urine Routine", "CBC", "ESR", "Blood Sugar Fasting", "HbA1c", "Kidney Profile", "Lipid Profile", "Liver Function Test", "Electrolyte Profile", "Iron Study (Iron TIBC Transferrin Saturation)", "Thyroid Profile", "25 OH Vitamin D", "Vitamin B12", "PSA Total", "Rheumatoid Factor (RF)", "ECG", "Chest X-Ray", "USG Screening AB+P", "2D Echo"], "r": "Premium male wellness."},
-            {"c": "Package", "n": "Woman Advance", "p": 6999, "original": 15999, "save": 9000, "includes": ["Complete Hemogram (28 tests)", "Iron Study (Iron TIBC Transferrin Saturation)", "Lipid Profile", "Liver Function Test", "Kidney Profile", "Wellness Vitamin Profile", "HbA1c", "Anti CCP (ACCP)", "Calcium", "Hormonal Test (FSH LH Prolactin)", "Estradiol", "Thyroid Profile", "ECG", "Chest X-Ray", "USG Screening AB+P", "2D Echo"], "r": "Premium female wellness."},
-            {"c": "Package", "n": "Cardiac Profile", "p": 3999, "original": 7500, "save": 3501, "includes": ["CPK-MB", "Troponin I", "Troponin T", "NT-PROBNP", "ECG", "X-Ray Chest"], "r": "Specialized heart health."},
+            {"c": "Package", "n": "Body Profile (Basic)", "p": 2999, "original": 5999, "save": 3000, "includes": ["CBC", "ESR", "Diabetic Profile", "Renal Profile", "Lipid Profile", "Urine Routine", "USG AB+P", "ECG", "Chest PA", "2D Echo", "BP"], "r": "Basic full body screen."},
+            {"c": "Package", "n": "Body Profile (Extended)", "p": 2199, "original": 8599, "save": 6400, "includes": ["CBC", "ESR", "Liver Profile", "Renal Profile", "Lipid Profile", "FBS", "PPBS", "HIV", "HCV", "HBSAG", "VDRL", "Thyroid Profile (T3T4TSH)", "Vit D3", "Vit B12", "Blood Group", "Urine Routine", "Stool Routine", "ECG", "Chest PA", "BP"], "r": "Official Care Point Health Package."},
+            {"c": "Package", "n": "Winter Package", "p": 2999, "original": 8999, "save": 6000, "includes": ["CBC", "Testosterone", "Lipid Profile", "Vit D3", "Liver Profile", "Vit B12", "Renal Profile", "Iron Studies", "Sugar Profile", "Chest PA", "Thyroid Profile (T3T4TSH)", "ECG"], "r": "Seasonal wellness profile."},
+            {"c": "Package", "n": "Fever Profile", "p": 599, "original": 1399, "save": 800, "includes": ["CBC", "ESR", "Malaria Parasite", "Widal", "Chest PA"], "r": "Primary fever screening."},
+            {"c": "Package", "n": "Male Advance", "p": 6999, "original": 12999, "save": 6000, "includes": ["Urine Routine", "CBC", "ESR", "Blood Sugar Fasting", "HbA1c", "Kidney Profile", "Lipid Profile", "Liver Function Test", "Electrolyte Profile", "Iron Study (Iron TIBC Transferrin Saturation)", "Thyroid Profile", "25 OH Vitamin D", "Vitamin B12", "PSA Total", "Rheumatoid Factor (RF)", "ECG", "Chest PA", "USG Screening AB+P", "2D Echo"], "r": "Premium male wellness."},
+            {"c": "Package", "n": "Woman Advance", "p": 6999, "original": 15999, "save": 9000, "includes": ["Complete Hemogram (28 tests)", "Iron Study (Iron TIBC Transferrin Saturation)", "Lipid Profile", "Liver Function Test", "Kidney Profile", "Wellness Vitamin Profile", "HbA1c", "Anti CCP (ACCP)", "Calcium", "Hormonal Test (FSH LH Prolactin)", "Estradiol", "Thyroid Profile", "ECG", "Chest PA", "USG Screening AB+P", "2D Echo"], "r": "Premium female wellness."},
+            {"c": "Package", "n": "Cardiac Profile", "p": 3999, "original": 7500, "save": 3501, "includes": ["CPK-MB", "Troponin I", "Troponin T", "NT-PROBNP", "ECG", "Chest PA"], "r": "Specialized heart health."},
             {"c": "Package", "n": "Cancer Profile", "p": 3799, "original": 8000, "save": 4201, "includes": ["CBC", "PSA Total", "PSA Free", "CA 125", "CA 19.9", "Procalcitonin", "Calcium"], "r": "Early tumor marker screen."}
         ];
 
@@ -212,10 +212,12 @@
             {"c": "Ultrasound", "n": "Colour Doppler (OBS)", "p": 3500, "r": "High-risk pregnancy flow."},
             {"c": "Ultrasound", "n": "Doppler (V/R/A)", "p": 3500, "r": "Blood vessel flow."},
             {"c": "Ultrasound", "n": "Small Parts", "p": 2500, "r": "Lumps (Breast/Thyroid/Scrotum)."},
+            {"c": "Ultrasound", "n": "Sonomammography", "p": 2500, "r": "Examines the breasts."},
             {"c": "Ultrasound", "n": "Follicular Study", "p": 1500, "r": "Egg release tracking."},
             {"c": "Ultrasound", "n": "2D Echo", "p": 2500, "r": "Heart pumping/defects."},
             {"c": "Ultrasound", "n": "Fetal 2D Echo", "p": 4000, "r": "Baby heart defects."},
-            {"c": "Ultrasound", "n": "USG Scrotum", "p": 2500, "r": "Testicular imaging."},
+            {"c": "Ultrasound", "n": "USG Scrotum", "p": 2800, "r": "Testicular imaging."},
+            {"c": "Ultrasound", "n": "Colour Doppler Scrotum", "p": 3500, "r": "Testicular imaging."},
             {"c": "Ultrasound", "n": "B Scan", "p": 3000, "r": "Eye imaging."}
         ];
 
