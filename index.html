@@ -25,13 +25,18 @@
 <body class="bg-slate-50 min-h-screen pb-40 font-sans">
 
     <header class="bg-slate-900 text-white p-5 shadow-lg sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div>
-                <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Care Point Diagnostics</h1>
-                <p class="text-[10px] text-blue-400 font-bold uppercase tracking-[0.2em] mt-1">Dombivli Branch | By Ady</p>
-            </div>
-            <button onclick="clearAll()" class="text-xs bg-slate-800 border border-slate-700 px-4 py-2 rounded-full text-slate-300 hover:text-white transition">Reset All</button>
-        </div>
+       <div class="max-w-4xl mx-auto flex justify-between items-center">
+    <div>
+        <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Care Point Diagnostics</h1>
+        <p class="text-[10px] text-blue-400 font-bold uppercase tracking-[0.2em] mt-1">Dombivli Branch | By Ady</p>
+    </div>
+    <div class="flex gap-2">
+        <button onclick="toggleHelp()" class="text-xs bg-blue-600 border border-blue-500 px-4 py-2 rounded-full text-white hover:bg-blue-700 transition">
+            <i class="fas fa-question-circle mr-1"></i> Help
+        </button>
+        <button onclick="clearAll()" class="text-xs bg-slate-800 border border-slate-700 px-4 py-2 rounded-full text-slate-300 hover:text-white transition">Reset All</button>
+    </div>
+</div>
     </header>
 
     <main class="max-w-4xl mx-auto p-4">
@@ -71,7 +76,40 @@
             </div>
         </div>
     </div>
-
+<div id="helpModal" class="modal">
+    <div class="bg-white rounded-[2rem] p-8 w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block mb-1">Guide</span>
+                <h2 class="text-2xl font-black text-slate-900">User Manual</h2>
+            </div>
+            <button onclick="toggleHelp()" class="text-slate-300 hover:text-slate-600"><i class="fas fa-times-circle text-3xl"></i></button>
+        </div>
+        
+        <div class="text-sm text-slate-600 space-y-6 overflow-y-auto pr-4 custom-scrollbar">
+            <section>
+                <h3 class="font-bold text-slate-900 uppercase text-xs mb-2">1. Browsing & Searching</h3>
+                <p>Use the **Search Bar** for specific tests or the **Category Filters** (Pathology, X-Ray, etc.) to browse by department.</p>
+            </section>
+            <section>
+                <h3 class="font-bold text-slate-900 uppercase text-xs mb-2">2. Adding Items</h3>
+                <p>Click any test card to add it. For **Packages**, a popup will show all included tests before you add it to the bill.</p>
+            </section>
+            <section>
+                <h3 class="font-bold text-slate-900 uppercase text-xs mb-2">3. Smart Logic</h3>
+                <p>If you add a Health Package, the system automatically removes any individual tests already included in that bundle to prevent double-charging.</p>
+            </section>
+            <section>
+                <h3 class="font-bold text-slate-900 uppercase text-xs mb-2">4. Sharing the Bill</h3>
+                <p>Use **Copy** for a text summary or **Send Bill** to open WhatsApp. The message automatically includes fasting instructions based on the selected tests.</p>
+            </section>
+        </div>
+        
+        <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+            <button onclick="toggleHelp()" class="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black shadow-lg">Got it!</button>
+        </div>
+    </div>
+</div>
     <div class="sticky-summary p-5 shadow-[0_-15px_40px_rgba(0,0,0,0.08)]">
         <div class="max-w-4xl mx-auto">
             <div id="cart" class="flex flex-wrap gap-2 mb-5 max-h-28 overflow-y-auto no-scrollbar">
@@ -354,6 +392,11 @@
             if(selected.length === 0) return alert('Select items first!');
             window.open(`https://wa.me/?text=${encodeURIComponent(buildMessage())}`, '_blank');
         }
+        
+        function toggleHelp() {
+    const modal = document.getElementById('helpModal');
+    modal.classList.toggle('active');
+}
 
         async function copyToClipboard() {
             if(selected.length === 0) return alert('Select items first!');
@@ -364,6 +407,7 @@
                 setTimeout(() => { btn.innerHTML = `<i class="fas fa-copy text-xl"></i><span class="hidden md:inline">COPY</span>`; }, 2000);
             } catch (err) { alert('Copy failed!'); }
         }
+    
 
         document.getElementById('mainSearch').oninput = (e) => {
             const cat = document.querySelector('.filter-btn.bg-blue-600').dataset.filter;
